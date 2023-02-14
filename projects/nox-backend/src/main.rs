@@ -1,7 +1,26 @@
+use std::env;
+use std::collections::HashMap;
+use std::sync::Mutex;
 
+use tokio::net::TcpListener;
 
+use nox_backend::{handle_connection, PeerMap};
 
+#[tokio::main]
+async fn main() -> Result<(), std::io::Error> {
+    let addr = env::args().nth(1).unwrap_or_else(|| "127.0.0.1:9527".to_string());
 
-fn main() -> Result<(), Error> {
-    tokio::task::block_on(run())
+    let state = PeerMap::new(Mutex::new(HashMap::new()));
+
+    // Create the event loop and TCP listener we'll accept connections on.
+    let try_socket = TcpListener::bind(&addr).await;
+    let listener = try_socket.expect("Failed to bind");
+    println!("Listening on: {}", addr);
+
+    // Let's spawn the handling of each connection in a separate task.
+    while let Ok((stream, addr)) = listener.accept().await {
+        tokio::spawn(handle_connection(state.clone(), stream, addr));
+    }
+
+    Ok(())
 }
