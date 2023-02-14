@@ -1,7 +1,7 @@
-use nox_frontend::{NoxProtocol};
 
 
 
-fn main() {
-    yew::Renderer::<NoxProtocol>::new().render();
+
+fn main() -> Result<(), Error> {
+    tokio::task::block_on(run())
 }
