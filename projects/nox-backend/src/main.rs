@@ -1,16 +1,17 @@
 use std::env;
 use std::collections::HashMap;
 use std::sync::Mutex;
+use dashmap::DashMap;
 
 use tokio::net::TcpListener;
 
-use nox_backend::{handle_connection, PeerMap};
+use nox_backend::{handle_connection};
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
     let addr = env::args().nth(1).unwrap_or_else(|| "127.0.0.1:9527".to_string());
 
-    let state = PeerMap::new(Mutex::new(HashMap::new()));
+    let state = DashMap::default();
 
     // Create the event loop and TCP listener we'll accept connections on.
     let try_socket = TcpListener::bind(&addr).await;

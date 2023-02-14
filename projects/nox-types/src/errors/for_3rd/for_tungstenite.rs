@@ -1,7 +1,8 @@
+use tungstenite::Error;
 use crate::NoxError;
 
-impl From<tungstenite::Error> for NoxError {
-    fn from(value: tungstenite::Error) -> Self {
+impl From<Error> for NoxError {
+    fn from(value: Error) -> Self {
         NoxError::runtime_error(value.to_string())
     }
 }
