@@ -1,7 +1,7 @@
-use nox_frontend::{NoxProtocol};
+use nox_frontend::{NoxProtocolModel};
 
 
 
 fn main() {
-    yew::Renderer::<NoxProtocol>::new().render();
+    yew::Renderer::<NoxProtocolModel>::new().render();
 }

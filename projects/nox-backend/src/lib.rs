@@ -13,7 +13,7 @@ use nox_types::NoxResult;
 
 pub type Tx = UnboundedSender<Message>;
 
-pub async fn handle_connection(peer_map: DashMap<SocketAddr, Tx>, raw_stream: TcpStream, addr: SocketAddr) -> NoxResult {
+pub async fn handle_connection(user_map: DashMap<SocketAddr, Tx>, raw_stream: TcpStream, addr: SocketAddr) -> NoxResult {
     println!("Incoming TCP connection from: {}", addr);
 
     let ws_stream = accept_async(raw_stream).await?;
@@ -21,7 +21,7 @@ pub async fn handle_connection(peer_map: DashMap<SocketAddr, Tx>, raw_stream: Tc
 
     // Insert the write part of this peer to the peer map.
     let (tx, rx) = unbounded();
-    peer_map.insert(addr, tx);
+    user_map.insert(addr, tx);
 
     let (outgoing, incoming) = ws_stream.split();
 
@@ -30,7 +30,7 @@ pub async fn handle_connection(peer_map: DashMap<SocketAddr, Tx>, raw_stream: Tc
 
         // We want to broadcast the message to everyone except ourselves.
         let broadcast_recipients =
-            peer_map.iter().filter(|peer_addr| peer_addr.key() != &addr).map(|ws_sink| ws_sink.value().clone());
+            user_map.iter().filter(|peer_addr| peer_addr.key() != &addr).map(|ws_sink| ws_sink.value().clone());
 
         for recp in broadcast_recipients {
             recp.unbounded_send(msg.clone()).unwrap();
@@ -45,7 +45,7 @@ pub async fn handle_connection(peer_map: DashMap<SocketAddr, Tx>, raw_stream: Tc
     future::select(broadcast_incoming, receive_from_others).await;
 
     println!("{} disconnected", &addr);
-    peer_map.remove(&addr);
+    user_map.remove(&addr);
     Ok(())
 }
 

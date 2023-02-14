@@ -1,7 +1,7 @@
-use yew::{Component, Context, html, Html};
-
 use anyhow::Error;
 use serde_derive::{Deserialize, Serialize};
+use yew::{Component, Context, html, Html};
+use yew_websocket::format::Binary;
 use yew_websocket::macros::Json;
 use yew_websocket::websocket::{WebSocketService, WebSocketStatus, WebSocketTask};
 
@@ -36,19 +36,25 @@ struct WsRequest {
     value: u32,
 }
 
+impl Into<Binary> for WsRequest {
+    fn into(self) -> Binary {
+        Ok(vec![])
+    }
+}
+
 
 #[derive(Deserialize, Debug)]
 pub struct WsResponse {
     value: u32,
 }
 
-pub struct NoxProtocol {
+pub struct NoxProtocolModel {
     pub fetching: bool,
     pub data: Option<u32>,
     pub ws: Option<WebSocketTask>,
 }
 
-impl NoxProtocol {
+impl NoxProtocolModel {
     fn view_data(&self) -> Html {
         if let Some(value) = self.data {
             html! {
@@ -62,7 +68,7 @@ impl NoxProtocol {
     }
 }
 
-impl Component for NoxProtocol {
+impl Component for NoxProtocolModel {
     type Message = Msg;
     type Properties = ();
 
@@ -86,7 +92,7 @@ impl Component for NoxProtocol {
                         }
                     });
                     let task = WebSocketService::connect(
-                        "wss://echo.websocket.events/",
+                        "ws://localhost:9527",
                         callback,
                         notification,
                     )
@@ -97,7 +103,7 @@ impl Component for NoxProtocol {
                 WsAction::SendData(binary) => {
                     let request = WsRequest { value: 321 };
                     if binary {
-                        self.ws.as_mut().unwrap().send_binary(Json(&request));
+                        self.ws.as_mut().unwrap().send_binary(request);
                     } else {
                         self.ws.as_mut().unwrap().send(Json(&request));
                     }
