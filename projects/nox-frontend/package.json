@@ -2,6 +2,6 @@
     "private": true,
     "scripts": {
         "p": "cargo publish --allow-dirty",
-        "dev": "trunk serve --port 6666 --open"
+        "dev": "trunk serve --port 9527 --open"
     }
 }
